@@ -21,6 +21,7 @@ int temp[4][4] = { 0 };//临时数组
 int dTime = 500;
 int id_1;
 int id_2;
+int id_3;
 
 //设置光标位置
 void SetXY(x, y) 
@@ -204,6 +205,7 @@ void StartGame()
 	Sleep(500);
 	CreateBlock();//产生第一个下落方块
 	id_1 = SetTimer(NULL, D_TIMER, dTime, &TimerProc);//打开定时器
+	id_3 = SetTimer(NULL, 3, 10, &TimerProc);//打开定时器
 }
 
 //显示下一个随机方块
@@ -252,11 +254,16 @@ void CreateBlock()
 			{
 				game_array[BEGIN_Y + i][((BEGIN_X - ROW_X) / 2) + j] = down_array[i][j];
 			}
+			else
+			{
+				SetConsoleTextAttribute(out, 0x0F);
+				//printf("□");
+				printf("%2s", "");
+			}
 		}
 	}
 	b_row = 0;
 	b_clo = 4;
-	//SetTimer(NULL, D_TIMER, dTime, &TimerProc);
 }
 
 //游戏界面显示
@@ -406,10 +413,8 @@ void Down()
 {
 	int i = 0,
 		j = 0;
-	
 	if (IsBottom() == 1 && CheckDown() == 1)
 	{
-		Contrl();
 		for (i = ROW - 1; i >= 0; i--)
 		{
 			for (j = 0; j < COLUMN; j++)
@@ -433,6 +438,7 @@ void Down()
 		Sleep(500);
 		CreateBlock();
 	}
+	
 }
 
 //固定方块
@@ -504,7 +510,7 @@ void Right()
 				}
 			}
 		}
-		b_row++;
+		b_clo++;
 		GameSpace(colorNum);
 	}
 }
@@ -555,8 +561,16 @@ void Shape()
 		for (j = 0; j < 4; j++)
 		{
 			temp[i][j] = game_array[i + b_row][j + b_clo];
-			temp[i][j] = Block[new_blockID][i][j];
-			game_array[i + b_row][j + b_clo] = temp[i][j];
+			if (IsLBorder() == 1 && IsRBorder() == 1 && CheckAround() == 1 && CheckDown() == 1 && IsBottom() == 1)
+			{
+				temp[i][j] = Block[new_blockID][i][j];
+				game_array[i + b_row][j + b_clo] = temp[i][j];
+			}
+			else
+			{
+				temp[i][j] = Block[blockID][i][j];
+				game_array[i + b_row][j + b_clo] = temp[i][j];
+			}
 		}
 	}
 	blockID = new_blockID;
@@ -586,10 +600,11 @@ void RemoveRow()
 		}
 		if (rm_flag == 1)
 		{
-			for (row = i; i >= 0; i--)
+			for (row = i; i >= 4; i--)
 			{
 				for (j = 0; j < 12; j++)
 				{
+					game_array[i][j] = 0;
 					game_array[i][j] = game_array[i - 1][j];
 				}
 			}
@@ -665,6 +680,7 @@ void IsOver()
 			GameOver();
 			memset(game_array, 0, sizeof(game_array));
 			KillTimer(NULL, id_1);
+			KillTimer(NULL, id_3);
 		}
 	}
 }
@@ -756,6 +772,10 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 	if (idEvent == id_2)
 	{
 		SpeedUp();
+	}
+	if (idEvent == id_3)
+	{
+		Contrl();
 	}
 }
 
